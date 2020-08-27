@@ -6,7 +6,7 @@ from django.contrib.auth.models import (
 
 class UserManager(BaseUserManager):
 
-    def create_user(self, email, username, first_name, last_name, password=None, is_staff=False, is_admin=False, is_active=False):
+    def create_user(self, email, username, first_name, last_name, password=None, staff=False, admin=False, active=True):
         if not email and username:
             raise ValueError("Users must have username and email")
         if not password:
@@ -19,37 +19,40 @@ class UserManager(BaseUserManager):
             last_name=last_name
         )
         user_obj.set_password(password)
-        user_obj.staff = is_staff
-        user_obj.admin = is_admin
-        user_obj.active = is_active
+        user_obj.staff = staff
+        user_obj.admin = admin
+        user_obj.active = active
         user_obj.save(using=self._db)
         return user_obj
 
-    def create_staffuser(self, email, username, first_name, last_name, password=None):
+    def create_staffuser(self, email, username, first_name, last_name, password):
         user = self.create_user(
             email,
             username,
             first_name,
             last_name,
             password=password,
-            is_staff=True
+            staff=True
         )
+        user.set_password(password)
         return user
 
-    def create_superuser(self, email, username, first_name, last_name, password=None):
+    def create_superuser(self, email, username, first_name, last_name, password):
         user = self.create_user(
             email,
             username,
             first_name,
             last_name,
             password=password,
-            is_staff=True,
-            is_admin=True
+            staff=True,
+            admin=True
         )
+        user.set_password(password)
         return user
 
 
 class User(AbstractBaseUser):
+    objects = UserManager()
     email = models.EmailField(unique=True, max_length=255)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -59,9 +62,7 @@ class User(AbstractBaseUser):
     admin = models.BooleanField(default=False)  # superuser
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'password']
-
-    objects = UserManager()
+    REQUIRED_FIELDS = ['username', 'password', 'first_name', 'last_name']
 
     def __str__(self):
         return self.username
