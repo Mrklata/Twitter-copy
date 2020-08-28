@@ -23,6 +23,10 @@ class UserManager(BaseUserManager):
         user_obj.admin = admin
         user_obj.active = active
         user_obj.save(using=self._db)
+
+        Profile.objects.create(
+            user=user_obj
+        )
         return user_obj
 
     def create_staffuser(self, email, username, first_name, last_name, password):
@@ -34,7 +38,6 @@ class UserManager(BaseUserManager):
             password=password,
             staff=True
         )
-        user.set_password(password)
         return user
 
     def create_superuser(self, email, username, first_name, last_name, password):
@@ -47,7 +50,6 @@ class UserManager(BaseUserManager):
             staff=True,
             admin=True
         )
-        user.set_password(password)
         return user
 
 
@@ -56,6 +58,7 @@ class User(AbstractBaseUser):
     email = models.EmailField(unique=True, max_length=255)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
+    last_login = models.DateTimeField(auto_now_add=True)
     username = models.CharField(unique=True, max_length=20)
     active = models.BooleanField(default=True)  # can login
     staff = models.BooleanField(default=False)
@@ -95,7 +98,39 @@ class User(AbstractBaseUser):
         return self.active
 
 
+class FriendRequest(models.Model):
+    STATUSES = (
+        ('pending', 'pending'),
+        ('declined', 'declined'),
+        ('accepted', 'accepted')
+    )
+
+    from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='from_user')
+    to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='to_user')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUSES, default='pending')
+
+    class Meta:
+        verbose_name = 'Friend request'
+        verbose_name_plural = 'Friend requests'
+        unique_together = ['from_user', 'to_user']
+
+    def __str__(self):
+        return f'Request from {self.from_user}, to {self.to_user}'
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     confirmed_account = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
+    friends_list = models.ManyToManyField('Profile', blank=True)
+
+    class Meta:
+        verbose_name = 'Profile'
+        verbose_name_plural = 'Profiles'
+
+    def __str__(self):
+        return self.user.email
+
+    def get_absolute_url(self):
+        pass

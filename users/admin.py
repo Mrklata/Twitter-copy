@@ -1,11 +1,14 @@
-# from django.contrib import admin
+from django.contrib import admin
 # from django import forms
 # from django.contrib.auth.admin import UserAdmin
 # from django.contrib.auth.forms import ReadOnlyPasswordHashField
 #
 # from users.models import User
 #
-#
+from users.models import User, Profile
+
+admin.site.register(User)
+admin.site.register(Profile)
 # class UserCreationForm(forms.ModelForm):
 #
 #     password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
