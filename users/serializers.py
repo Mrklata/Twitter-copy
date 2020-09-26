@@ -29,12 +29,12 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
         write_only_fields = ('to_user',)
         read_only_fields = ('from_user', 'timestamp', 'status', 'last_login')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=FriendRequest.objects.all(),
-                fields=['from_user', 'to_user']
-            )
-        ]
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=FriendRequest.objects.all(),
+        #         fields=['from_user', 'to_user']
+        #     )
+        # ]
 
         def create(self, validated_data):
             friend_request = FriendRequest.objects.create(
@@ -44,4 +44,4 @@ class FriendRequestSerializer(serializers.ModelSerializer):
 
 
 class FriendResponseSerializer(serializers.Serializer):
-    accepted = serializers.BooleanField(required=True)
+    accepted = serializers.BooleanField(default=False)

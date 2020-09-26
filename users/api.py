@@ -1,5 +1,9 @@
 from rest_framework import viewsets, mixins, permissions
 from django.db.models import Q
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+
 from users.models import User, FriendRequest
 from users.serializers import UserSerializer, FriendRequestSerializer, FriendResponseSerializer
 
@@ -32,12 +36,37 @@ class CreateFriendRequestView(viewsets.GenericViewSet, mixins.CreateModelMixin, 
 
 
 class CreateFriendResponseView(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.ListModelMixin):
-    serializer_class = FriendResponseSerializer, FriendRequestSerializer
+    serializer_class = FriendResponseSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    queryset = FriendRequest.objects.all()
 
     def get_queryset(self):
-        requests = FriendRequest.objects.filter(to_user=self.request.user)
-        return requests
+        user = self.request.user
+        response = FriendRequest.objects.filter(to_user=user)
+        return response
 
-    def perform_create(self, serializer):
-        pass
+    @action(
+        methods=['post'],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='invitation_response',
+        url_name='invitation_response'
+    )
+    def response_to_friend_request(self, request, pk=None):
+        friend_request = get_object_or_404(FriendRequest, pk=pk)
+        print(request.data)
+
+        serializer = self.get_serializer(request.data)
+        if friend_request.status == 'pending':
+
+            if serializer.data['accepted'] == True:
+                friend_request.status = 'accepted'
+                friend_request.save()
+            else:
+                friend_request.status = 'declined'
+                friend_request.delete()
+
+        else:
+            return Response({'status': 'already responded'})
+        data = {"status": "ok", "data": FriendRequestSerializer(friend_request).data}
+        return Response(data)
