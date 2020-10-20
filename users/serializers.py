@@ -23,18 +23,18 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__'
+
+
 class FriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
         fields = '__all__'
         write_only_fields = ('to_user',)
         read_only_fields = ('from_user', 'timestamp', 'status', 'last_login')
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=FriendRequest.objects.all(),
-        #         fields=['from_user', 'to_user']
-        #     )
-        # ]
 
         def create(self, validated_data):
             friend_request = FriendRequest.objects.create(

@@ -62,7 +62,7 @@ class User(AbstractBaseUser):
     last_login = models.DateTimeField(auto_now_add=True)
     username = models.CharField(unique=True, max_length=20)
     active = models.BooleanField(default=True)  # can login
-    staff = models.BooleanField(default=False)
+    staff = models.BooleanField(default=False)  # staffuser
     admin = models.BooleanField(default=False)  # superuser
 
     USERNAME_FIELD = 'email'

@@ -4,8 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from users.models import User, FriendRequest
-from users.serializers import UserSerializer, FriendRequestSerializer, FriendResponseSerializer
+from users.models import User, FriendRequest, Profile
+from users.serializers import UserSerializer, FriendRequestSerializer, FriendResponseSerializer, ProfileSerializer
 
 
 class CreateUserView(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -19,6 +19,15 @@ class CreateUserView(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.Li
 
     def get_queryset(self):
         return User.objects.all()
+
+
+class CreateProfileView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    model = Profile
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        return Profile.objects.all()
 
 
 class CreateFriendRequestView(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -54,8 +63,6 @@ class CreateFriendResponseView(viewsets.GenericViewSet, mixins.CreateModelMixin,
     )
     def response_to_friend_request(self, request, pk=None):
         friend_request = get_object_or_404(FriendRequest, pk=pk)
-        print(request.data)
-
         serializer = self.get_serializer(request.data)
         if friend_request.status == 'pending':
 
