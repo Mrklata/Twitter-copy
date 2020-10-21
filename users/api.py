@@ -23,10 +23,10 @@ class CreateUserView(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.Li
 
 class CreateProfileView(viewsets.GenericViewSet, mixins.ListModelMixin):
     model = Profile
-    permission_classes = (permissions.AllowAny,)
     serializer_class = ProfileSerializer
 
     def get_queryset(self):
+        user = self.request.user
         return Profile.objects.all()
 
 
@@ -64,16 +64,22 @@ class CreateFriendResponseView(viewsets.GenericViewSet, mixins.CreateModelMixin,
     def response_to_friend_request(self, request, pk=None):
         friend_request = get_object_or_404(FriendRequest, pk=pk)
         serializer = self.get_serializer(request.data)
-        if friend_request.status == 'pending':
+        if friend_request.status == 'pending' and self.request.user == friend_request.to_user:
 
             if serializer.data['accepted'] == True:
                 friend_request.status = 'accepted'
+                giver = Profile.objects.get(user=friend_request.from_user)
+                receiver = Profile.objects.get(user=friend_request.to_user)
+
+                giver.friends_list.add(Profile.objects.get(user=friend_request.to_user))
+                receiver.friends_list.add(Profile.objects.get(user=friend_request.from_user))
+
                 friend_request.save()
             else:
                 friend_request.status = 'declined'
                 friend_request.delete()
 
         else:
-            return Response({'status': 'already responded'})
+            return Response({'status': 'already responded, or wrong user'})
         data = {"status": "ok", "data": FriendRequestSerializer(friend_request).data}
         return Response(data)

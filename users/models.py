@@ -28,6 +28,9 @@ class UserManager(BaseUserManager):
         Profile.objects.create(
             user=user_obj
         )
+        current_user = Profile.objects.get(user=user_obj)
+        current_user.friends_list.add(Profile.objects.get(user=current_user))
+
         return user_obj
 
     def create_staffuser(self, email, username, first_name, last_name, password):
@@ -137,4 +140,4 @@ class Profile(models.Model):
         return self.user.email
 
     def get_absolute_url(self):
-        pass
+        return reverse("profile-detail", kwargs={"pk": self.id})
