@@ -25,12 +25,12 @@ class UserManager(BaseUserManager):
         user_obj.active = active
         user_obj.save(using=self._db)
 
-        Profile.objects.create(
+        current_user = Profile.objects.create(
             user=user_obj
         )
-        current_user = Profile.objects.get(user=user_obj)
-        current_user.friends_list.add(Profile.objects.get(user=current_user))
 
+        current_user.friends_list.add(Profile.objects.get(user=user_obj))
+        current_user.save()
         return user_obj
 
     def create_staffuser(self, email, username, first_name, last_name, password):
@@ -74,15 +74,6 @@ class User(AbstractBaseUser):
     def __str__(self):
         return self.username
 
-    def get_email(self):
-        return self.email
-
-    def has_perm(self, perm, obj=None):
-        return True
-
-    def has_module_perms(self, app_label):
-        return True
-
     def get_full_name(self):
         return f'name: {self.first_name}, surname: {self.last_name}'
 
@@ -117,7 +108,7 @@ class FriendRequest(models.Model):
     class Meta:
         verbose_name = 'Friend request'
         verbose_name_plural = 'Friend requests'
-        unique_together = ['from_user', 'to_user']
+        unique_together = ('from_user', 'to_user')
 
     def __str__(self):
         return f'Request from {self.from_user}, to {self.to_user}'
