@@ -65,4 +65,3 @@ class CreatePostRatingView(viewsets.ModelViewSet, mixins.CreateModelMixin, mixin
 
         post.rates.add(post_rate)
         return Response(data={'status': 'ok', 'data': serializer.data})
-
