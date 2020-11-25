@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'django_extensions',
+    'channels',
+    'chat',
     'posts.apps.PostsConfig'
 ]
 
