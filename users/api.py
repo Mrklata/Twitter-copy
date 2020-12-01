@@ -35,31 +35,31 @@ class CreateFriendRequestView(viewsets.GenericViewSet, mixins.CreateModelMixin, 
     serializer_class = FriendRequestSerializer
     queryset = FriendRequest.objects.all()
 
-    def perform_create(self, serializer):
-        if serializer.data['to_user'] == self.request.user.id:
-            return Response({'status': "can't invite yourself"})
-
-        if FriendRequest.objects.filter(from_user=self.request.user, to_user=serializer.data['to_user']) or \
-                FriendRequest.objects.filter(from_user=serializer.data['to_user'], to_user=self.request.user):
-
-            return Response({'status': 'already exist'})
-        else:
-            return serializer.save(from_user=self.request.user)
+    # def perform_create(self, serializer):
+    #     if serializer.data['to_user'] == self.request.user.id:
+    #         return Response({'status': "can't invite yourself"})
+    #
+    #     if FriendRequest.objects.filter(from_user=self.request.user, to_user=serializer.data['to_user']) or \
+    #             FriendRequest.objects.filter(from_user=serializer.data['to_user'], to_user=self.request.user):
+    #
+    #         return Response({'status': 'already exist'})
+    #     else:
+    #         return serializer.save(from_user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if serializer.data['to_user'] == self.request.user.id:
+        if serializer.validated_data['to_user'] == self.request.user.id:
             return Response({'status': "can't invite yourself"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if FriendRequest.objects.filter(from_user=self.request.user, to_user=serializer.data['to_user']) or \
-                FriendRequest.objects.filter(from_user=serializer.data['to_user'], to_user=self.request.user):
+        if FriendRequest.objects.filter(from_user=self.request.user, to_user=serializer.validated_data['to_user']) or \
+                FriendRequest.objects.filter(from_user=serializer.validated_data['to_user'], to_user=self.request.user):
 
             return Response({'status': 'already exist'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            data = serializer.save(from_user=self.request.user)
-            return Response(data, status=status.HTTP_201_CREATED)
+            serializer.save(from_user=self.request.user)
+            return Response({"status": 'ok', 'data': serializer.data}, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
         user = self.request.user
